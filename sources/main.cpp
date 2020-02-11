@@ -1,11 +1,13 @@
 #include <ncurses.h>
+#include <string.h>
+#include "parser.h"
+#include "application.h"
+
 
 int main()
 {
-    initscr();
-    printw("Hello World !");
-    refresh();
-    getch();
-    endwin();
+    Application app;
+    app.run();
+
     return 0;
 }
