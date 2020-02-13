@@ -3,18 +3,23 @@
 
 #include <memory>
 #include <list>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 #include "dashboard.h"
 #include "parser.h"
 #include "request.h"
+#include "backend.h"
 
 class Application {
     private:
+        std::shared_ptr<Backend> mBackendPtr;
         Dashboard mDashboard;
+        std::vector<Parser> mParserList;
 
     public:
-        using RequestList = std::list<Request>;
-        /* Application(); */
+        Application();
         void run();
 };
 

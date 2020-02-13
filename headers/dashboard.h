@@ -2,25 +2,31 @@
 #define DASHBOARD_H
 
 #include <ncurses.h>
-#include <string>
 #include <panel.h>
 #include <unistd.h>
+#include <memory>
+#include <string>
 
+#include "backend.h"
 
 class Dashboard {
     private:
+        std::weak_ptr<Backend> mBackendPtr;
         int mCols;
         int mRows;
+        int mVSep;
+        int mHSep;
         bool showRequests = false;
 
 
         void destroyWindow(WINDOW *win);
-        void displayRequests();
+        void displayRequests(WINDOW *win, int &offset);
         WINDOW * createWindow(int rows, int cols, int offsetRows, int offsetCols, std::string title = "", bool hasBox = true);
+        void deleteLine(WINDOW * win, int cols, int indexRow);
 
 
     public:
-        Dashboard();
+        Dashboard(std::weak_ptr<Backend> backend);
         void launchUi();
 };
 
