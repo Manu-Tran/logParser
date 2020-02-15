@@ -115,6 +115,7 @@ void Dashboard::launchUi(){
                 refresh();
                 break;
         }
+        displayInformation(informations);
     }
 
     delwin(requests);
@@ -143,28 +144,57 @@ WINDOW * Dashboard::createWindow(int rows, int cols, int offsetRows, int offsetC
 
 void Dashboard::displayRequests(WINDOW * win, int &offset){
     Backend::buffer requestBuffer = mBackendPtr.lock()->getRequestBuffer();
-    /* wclear(win); */
-    /* win = createWindow(mRows-1, mVSep-1, 0, 0, "Requests"); */
+    unsigned int sizeBuffer = mBackendPtr.lock()->getBufferSize();
+
     // Number of columns that can be printed
     unsigned int windowSize = mRows-3;
 
     // Estimate if the offset goes beyond the buffer
-    if (windowSize + offset > requestBuffer.second) {
-        offset = std::max((int)(requestBuffer.second-windowSize), 0);
+    if (windowSize + offset > sizeBuffer) {
+        offset = std::max((int)(sizeBuffer-windowSize), 0);
     }
-    unsigned int nbPrintedRequest = std::min(requestBuffer.second, windowSize);
 
-    // Add the offset to the itérator
-    for (int i(0); i < offset; i++) requestBuffer.first++;
+    // Number of request printed
+    unsigned int count = 0;
 
-    for (int count(nbPrintedRequest); count != 0; count--){
-        deleteLine(win, mVSep-1,nbPrintedRequest - count +1 );
-        mvwprintw(win,nbPrintedRequest - count +1, 1, (*requestBuffer.first).toString().c_str());
+    // Number of request skipped
+    unsigned int skipCount = 0;
+
+    for (unsigned int i(0); i < requestBuffer.second; i++){
+        requestList currentList = requestBuffer.first->second;
+        for (auto itr(currentList.begin()); itr != currentList.end(); itr++){
+            // Skip the first requests (offset)
+            if (skipCount >= offset) {
+                deleteLine(win, mVSep,count+1);
+                mvwprintw(win,count+1, 1, (*itr).toString().c_str());
+                count++;
+            } else {
+                skipCount++;
+            }
+            if (count >= windowSize) break;
+        }
+        if (count >= windowSize) break;
         requestBuffer.first++;
+    }
+    if (count < windowSize) {
+        while (count < windowSize){
+            deleteLine(win, mVSep, count+1);
+            count++;
+        }
     }
     wrefresh(win);
 }
 
 void Dashboard::deleteLine(WINDOW * win, int cols, int indexLine){
     mvwprintw(win,indexLine, 1, std::string(cols-2, ' ').c_str());
+}
+
+void Dashboard::displayInformation(WINDOW *win){
+    std::shared_ptr<Backend> backend = mBackendPtr.lock();
+    long unsigned int startTimestamp = backend->getStartTime();
+    unsigned int windowSize = backend->getTimeWindow();
+    std::string printTimestamp = "["+std::to_string(startTimestamp) + ";" + std::to_string(startTimestamp+windowSize-1) +"]";
+    mvwprintw(win, 1, 1, "Timestamp range : ");
+    mvwprintw(win, 2, 1, printTimestamp.c_str());
+    wrefresh(win);
 }

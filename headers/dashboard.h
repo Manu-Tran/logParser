@@ -25,6 +25,8 @@ class Dashboard {
         WINDOW * createWindow(int rows, int cols, int offsetRows, int offsetCols, std::string title = "", bool hasBox = true);
         void deleteLine(WINDOW * win, int cols, int indexRow);
 
+        void displayInformation(WINDOW *win);
+
 
     public:
         Dashboard(std::weak_ptr<Backend> backend);

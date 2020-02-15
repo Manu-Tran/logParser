@@ -68,38 +68,44 @@ void Parser::getNextRequest(){
     std::string res = readLogLine();
     /* std::cout << "Printing " << res << std::endl; */
     if (appIsRunning()){
-    std::vector<std::string> parsedInput = parseCSV(res);
-    std::string path;
-    std::string method;
+        std::vector<std::string> parsedInput = parseCSV(res);
+        if (parsedInput.size() < 7) {
+            std::cout << "Error, not well formatted input !" << std::endl;
+            /* sleep(1); */
+            return;
+        }
+        std::string path;
+        std::string method;
 
-    std::regex re("(.*) (.*) .*");
-    std::smatch match;
-    if (std::regex_search(parsedInput[4], match, re) && match.size() > 2) {
-        method = match.str(1);
-        path = match.str(2);
-    } else {
-        std::cout << "Error parsing regex ! " << std::endl;
-        return;
-    }
+        std::regex re("(.*) (.*) .*");
+        std::smatch match;
+        if (std::regex_search(parsedInput[4], match, re) && match.size() > 2) {
+            method = match.str(1);
+            path = match.str(2);
+        } else {
+            std::cout << "Error parsing regex ! " << std::endl;
+            return;
+        }
 
-    mBackendPtr.lock()->insertRequest(
-            request(
-                parsedInput[0],
-                path,
-                method,
-                parsedInput[2],
-                std::stoi(parsedInput[3]),
-                std::stoi(parsedInput[5]),
-                std::stoi(parsedInput[6])
-                )
-            );
-    }
+        mBackendPtr.lock()->insertRequest(
+                request(
+                    parsedInput[0],
+                    path,
+                    method,
+                    parsedInput[2],
+                    std::stoi(parsedInput[3]),
+                    std::stoi(parsedInput[5]),
+                    std::stoi(parsedInput[6])
+                    )
+                );
+        }
 }
 
 void Parser::run(){
     int count = 0;
     while (true and appIsRunning()){
         getNextRequest();
+        /* sleep(1); */
         count++;
     }
 }
