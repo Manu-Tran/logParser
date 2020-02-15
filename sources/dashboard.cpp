@@ -29,10 +29,12 @@ void Dashboard::launchUi(){
 
 
     stats = createWindow(mHSep-1, mVSep, 0, 0, "Statistics");
-    informations = createWindow(mRows-1, mCols-mVSep-1, 0, mVSep+1, "Informations");
+    informations = createWindow(mRows-1, mCols-mVSep, 0, mVSep, "Informations");
     alerts = createWindow(mRows-mHSep, mVSep, mHSep-1, 0, "Alerts");
     footer = createWindow(1, mCols, mRows-1, 0, "", false);
     mvwprintw(footer, 0, 5, "TAB: Switch to requests / r: refresh / q:quit");
+    displayInformation(informations);
+
     wrefresh(footer);
 
     int ch;
@@ -49,7 +51,7 @@ void Dashboard::launchUi(){
                 else {
                     destroyWindow(alerts);
                     destroyWindow(stats);
-                    requests = createWindow(mRows-1, mVSep-1, 0, 0, "Requests");
+                    requests = createWindow(mRows-1, mVSep, 0, 0, "Requests");
                     displayRequests(requests, offset);
                 }
                 showRequests = !showRequests;
@@ -72,6 +74,18 @@ void Dashboard::launchUi(){
             case 'j':
                 if (showRequests){
                     offset++;
+                    displayRequests(requests, offset);
+                }
+                break;
+            case 'h':
+                if (showRequests){
+                    mBackendPtr.lock()->slideTimeWindow(false);
+                    displayRequests(requests, offset);
+                }
+                break;
+            case 'l':
+                if (showRequests){
+                    mBackendPtr.lock()->slideTimeWindow(true);
                     displayRequests(requests, offset);
                 }
                 break;

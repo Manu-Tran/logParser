@@ -1,10 +1,10 @@
 #include "application.h"
 
-Application::Application()
-  : mBackendPtr(std::make_shared<Backend>())
+Application::Application(std::string filename, unsigned int timewindow)
+  : mBackendPtr(std::make_shared<Backend>(timewindow))
   , mDashboard(mBackendPtr)
 {
-  mParserList.push_back(Parser(mBackendPtr, "logfile"));
+  mParserList.push_back(Parser(mBackendPtr, filename));
 }
 
 void Application::run(){

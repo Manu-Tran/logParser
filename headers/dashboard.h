@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <memory>
 #include <string>
+#include <iostream>
 
 #include "backend.h"
 

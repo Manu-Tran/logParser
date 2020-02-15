@@ -25,7 +25,7 @@ typedef struct request_t{
     {}
 
     std::string toString(){
-        return host + " " + authuser + " " +  method + " " + path;
+        return host + " " + authuser + " " +  method + " " + path +" " + std::to_string(timestamp);
     }
 } request;
 

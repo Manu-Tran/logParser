@@ -19,7 +19,7 @@ class Application {
         std::vector<Parser> mParserList;
 
     public:
-        Application();
+        Application(std::string filename = "", unsigned int timewindow = 10);
         void run();
 };
 
