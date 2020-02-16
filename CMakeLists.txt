@@ -28,10 +28,6 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 #======================================================================
 # Executable
 add_compile_options(
-  -Wall
-  -Wextra
-  -Wpedantic
-  # -Werror
   )
 
 file (

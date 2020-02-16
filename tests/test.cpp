@@ -1,12 +1,17 @@
 #include "request.h"
+#include "dashboard.h"
+#include "parser.h"
+#include "backend.h"
+#include "application.h"
 
 #include <gtest/gtest.h>
 #include <list>
 #include <memory>
+#include <thread>
 
 using namespace std;
 
-// Test Alert Logic
+// Test Request Logic
 TEST ( TestRequestStruct, Request1)
 {
     request req("127.0.0.1","/api/rest","GET","apache",100,404, 1000);
@@ -17,6 +22,7 @@ TEST ( TestRequestStruct, Request1)
     EXPECT_EQ("127.0.0.1 apache GET /website 100",req2.toString());
     EXPECT_EQ("/website",req2.getSection());
 }
+
 
 
 int main(int argc,char *argv[]) {
