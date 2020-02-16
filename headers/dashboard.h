@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "backend.h"
 
@@ -21,11 +23,12 @@ class Dashboard {
 
 
         void destroyWindow(WINDOW *win);
-        void displayRequests(WINDOW *win, int &offset);
         WINDOW * createWindow(int rows, int cols, int offsetRows, int offsetCols, std::string title = "", bool hasBox = true);
         void deleteLine(WINDOW * win, int cols, int indexRow);
 
         void displayInformation(WINDOW *win);
+        void displayStatistics(WINDOW * win, int &offset);
+        void displayRequests(WINDOW *win, int &offset);
 
 
     public:

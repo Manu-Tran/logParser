@@ -13,14 +13,20 @@
 class Backend {
     // Type definitions
     public:
-        // Data structure representing the current buffer (a start iterator and the length)
-        using buffer = std::pair<std::map<long unsigned int, requestList>::iterator, unsigned int>;
+        // Data structure representing the current buffer (2 iterators)
+        using mapIterator = std::map<long unsigned int, requestList>::iterator;
+        using buffer = std::pair<mapIterator, mapIterator>;
 
     private:
         std::mutex mRequestsMutex;
-        const unsigned int mTimeWindow;
+        unsigned int mTimeWindow;
         Backend::buffer mCurrentBuffer;
         std::map<long unsigned int, requestList> mRequests;
+        std::multimap<unsigned int, std::string> mMostHits;
+        std::unordered_map<std::string, unsigned int> mSectionCount;
+
+        void increaseCountInMap(std::string section);
+        void decreaseCountInMap(std::string section);
 
     public:
         std::atomic<bool> isRunning = true;
@@ -31,9 +37,9 @@ class Backend {
 
         unsigned int getBufferSize();
         long unsigned int getStartTime();
-        const unsigned int getTimeWindow();
+        unsigned int getTimeWindow();
         Backend::buffer getRequestBuffer();
-        void updateWindowSize();
+        std::vector<std::pair<unsigned int, std::string>> getMostHits(unsigned int nbSections, unsigned int &offset);
 
 
         void slideTimeWindow(bool forward = false);

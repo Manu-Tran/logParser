@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 #include <list>
+#include <regex>
+#include <iostream>
 
 typedef struct request_t{
     const std::string host;
@@ -27,7 +29,23 @@ typedef struct request_t{
     std::string toString(){
         return host + " " + authuser + " " +  method + " " + path +" " + std::to_string(timestamp);
     }
+
+    std::string getSection(){
+        std::regex re("(/[^/]*).*");
+        std::smatch match;
+        std::string section;
+        if (std::regex_search(path, match, re) && match.size() > 0) {
+            section = match.str(1);
+        } else {
+            std::cout << "Error parsing regex !" << path << std::endl;
+            return "";
+        }
+        return section;
+    }
+
 } request;
+
+
 
 /* using requestPtr = std::shared_ptr<request>; */
 using requestList = std::list<request>;

@@ -17,8 +17,8 @@ void Dashboard::launchUi(){
 
     initscr();
 
-    // Position of the separation between the windows
     int offset = 0;
+    // Position of the separation between the windows
     mVSep = int(mCols*3/4);
     mHSep = int(mRows*2/3);
 
@@ -32,8 +32,12 @@ void Dashboard::launchUi(){
     informations = createWindow(mRows-1, mCols-mVSep, 0, mVSep, "Informations");
     alerts = createWindow(mRows-mHSep, mVSep, mHSep-1, 0, "Alerts");
     footer = createWindow(1, mCols, mRows-1, 0, "", false);
-    mvwprintw(footer, 0, 5, "TAB: Switch to requests / r: refresh / q:quit");
+    mvwprintw(footer, 0, 5, "TAB: Switch to requests / r: refresh / q:quit / j,k scroll / h,l backward, forward");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
     displayInformation(informations);
+    displayStatistics(stats, offset);
 
     wrefresh(footer);
 
@@ -47,12 +51,14 @@ void Dashboard::launchUi(){
                     destroyWindow(requests);
                     stats = createWindow(mHSep-1, mVSep, 0, 0, "Statistics");
                     alerts = createWindow(mRows-mHSep, mVSep, mHSep-1, 0, "Alerts");
+                    offset = 0;
                 }
                 else {
                     destroyWindow(alerts);
                     destroyWindow(stats);
                     requests = createWindow(mRows-1, mVSep, 0, 0, "Requests");
                     displayRequests(requests, offset);
+                    offset = 0;
                 }
                 showRequests = !showRequests;
                 break;
@@ -70,23 +76,37 @@ void Dashboard::launchUi(){
                     offset = std::max(offset-1, 0);
                     displayRequests(requests, offset);
                 }
+                else {
+                    offset = std::max(offset-1, 0);
+                    displayStatistics(stats, offset);
+                }
                 break;
             case 'j':
                 if (showRequests){
                     offset++;
                     displayRequests(requests, offset);
                 }
+                else {
+                    offset++;
+                    displayStatistics(stats, offset);
+                }
                 break;
             case 'h':
+                mBackendPtr.lock()->slideTimeWindow(false);
                 if (showRequests){
-                    mBackendPtr.lock()->slideTimeWindow(false);
                     displayRequests(requests, offset);
+                }
+                else {
+                    displayStatistics(stats, offset);
                 }
                 break;
             case 'l':
+                mBackendPtr.lock()->slideTimeWindow(true);
                 if (showRequests){
-                    mBackendPtr.lock()->slideTimeWindow(true);
                     displayRequests(requests, offset);
+                }
+                else {
+                    displayStatistics(stats, offset);
                 }
                 break;
             /* case 410: */
@@ -115,6 +135,7 @@ void Dashboard::launchUi(){
                 refresh();
                 break;
         }
+        if (!showRequests) displayStatistics(stats, offset);
         displayInformation(informations);
     }
 
@@ -160,8 +181,13 @@ void Dashboard::displayRequests(WINDOW * win, int &offset){
     // Number of request skipped
     unsigned int skipCount = 0;
 
-    for (unsigned int i(0); i < requestBuffer.second; i++){
-        requestList currentList = requestBuffer.first->second;
+    // Including the element pointed by the end iterator
+    auto limit = requestBuffer.second;
+    limit++;
+
+    for (auto itr(requestBuffer.first); itr != limit; itr++ ){
+    /* for (unsigned int i(0); i < requestBuffer.second; i++){ */
+        requestList currentList = itr->second;
         for (auto itr(currentList.begin()); itr != currentList.end(); itr++){
             // Skip the first requests (offset)
             if (skipCount >= offset) {
@@ -174,8 +200,8 @@ void Dashboard::displayRequests(WINDOW * win, int &offset){
             if (count >= windowSize) break;
         }
         if (count >= windowSize) break;
-        requestBuffer.first++;
     }
+    // Delete the rest of the buffer
     if (count < windowSize) {
         while (count < windowSize){
             deleteLine(win, mVSep, count+1);
@@ -191,10 +217,45 @@ void Dashboard::deleteLine(WINDOW * win, int cols, int indexLine){
 
 void Dashboard::displayInformation(WINDOW *win){
     std::shared_ptr<Backend> backend = mBackendPtr.lock();
+
+    // Get timestamp range
     long unsigned int startTimestamp = backend->getStartTime();
     unsigned int windowSize = backend->getTimeWindow();
-    std::string printTimestamp = "["+std::to_string(startTimestamp) + ";" + std::to_string(startTimestamp+windowSize-1) +"]";
+    std::string printTimestamp = "["+std::to_string(startTimestamp) + ";" + std::to_string(startTimestamp+windowSize) +"]";
+
+    // Get number of requests
+    unsigned int nbRequests = backend->getBufferSize();
+
+    // Reset the buffer
+    for (int count(0); count < mRows-3; count++)
+        mvwprintw(win, count+1, 1, std::string(mCols-mVSep-2, ' ').c_str());
+
+    // Printing informations
     mvwprintw(win, 1, 1, "Timestamp range : ");
     mvwprintw(win, 2, 1, printTimestamp.c_str());
+    mvwprintw(win, 4, 1, (std::string("Nb of requests : ")+std::to_string(nbRequests)).c_str());
     wrefresh(win);
 }
+
+void Dashboard::displayStatistics(WINDOW * win, int &offset){
+    std::shared_ptr<Backend> backend = mBackendPtr.lock();
+    unsigned int offsetTemp = offset;
+    std::vector<std::pair<unsigned int, std::string>> mostHits = backend->getMostHits(mHSep, offsetTemp);
+    offset = offsetTemp;
+    unsigned int count = 0;
+    for (auto itr(mostHits.rbegin()); itr != mostHits.rend(); itr++){
+        count++;
+        deleteLine(win, mVSep, count);
+        mvwprintw(win, count, 1, (std::to_string(itr->first)).c_str());
+        mvwprintw(win, count, 5, (itr->second).c_str());
+    }
+    // Delete the rest of the buffer
+    if (count < mHSep) {
+        while (count < mHSep-3){
+            deleteLine(win, mVSep, count+1);
+            count++;
+        }
+    }
+    wrefresh(win);
+}
+
