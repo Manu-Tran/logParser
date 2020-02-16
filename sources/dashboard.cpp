@@ -1,5 +1,11 @@
 #include "dashboard.h"
 
+bool volatile KeepRunning = true;
+
+void intHandler(int dummy) {
+    KeepRunning = false;
+}
+
 Dashboard::Dashboard(std::weak_ptr<Backend> backend)
     : mBackendPtr(backend){
     initscr();
@@ -7,8 +13,9 @@ Dashboard::Dashboard(std::weak_ptr<Backend> backend)
     endwin();
 }
 
-void Dashboard::launchUi(){
 
+
+void Dashboard::launchInteractiveUi(){
     WINDOW *stats;
     WINDOW *informations;
     WINDOW *alerts;
@@ -38,6 +45,7 @@ void Dashboard::launchUi(){
 
     displayInformation(informations);
     displayStatistics(stats, offset);
+    displayAlerts(alerts);
 
     wrefresh(footer);
 
@@ -108,6 +116,7 @@ void Dashboard::launchUi(){
                 else {
                     displayStatistics(stats, offset);
                 }
+                fetchAlert();
                 break;
             /* case 410: */
             /*     delwin(requests); */
@@ -135,7 +144,10 @@ void Dashboard::launchUi(){
                 refresh();
                 break;
         }
-        if (!showRequests) displayStatistics(stats, offset);
+        if (!showRequests) {
+            displayStatistics(stats, offset);
+            displayAlerts(alerts);
+        }
         displayInformation(informations);
     }
 
@@ -165,6 +177,7 @@ WINDOW * Dashboard::createWindow(int rows, int cols, int offsetRows, int offsetC
 
 void Dashboard::displayRequests(WINDOW * win, int &offset){
     Backend::buffer requestBuffer = mBackendPtr.lock()->getRequestBuffer();
+    if (mBackendPtr.lock()->bufIsEmpty()) return;
     unsigned int sizeBuffer = mBackendPtr.lock()->getBufferSize();
 
     // Number of columns that can be printed
@@ -221,6 +234,17 @@ void Dashboard::displayInformation(WINDOW *win){
     // Get timestamp range
     long unsigned int startTimestamp = backend->getStartTime();
     unsigned int windowSize = backend->getTimeWindow();
+    double meanRequests = backend->getMeanRequets();
+
+    std::ostringstream streamObj;
+    // Set Fixed -Point Notation
+    streamObj << std::fixed;
+    // Set precision to 2 digits
+    streamObj << std::setprecision(2);
+    //Add double to stream
+    streamObj << meanRequests;
+
+    std::string meanRequestsPrint = streamObj.str();
     std::string printTimestamp = "["+std::to_string(startTimestamp) + ";" + std::to_string(startTimestamp+windowSize) +"]";
 
     // Get number of requests
@@ -234,6 +258,9 @@ void Dashboard::displayInformation(WINDOW *win){
     mvwprintw(win, 1, 1, "Timestamp range : ");
     mvwprintw(win, 2, 1, printTimestamp.c_str());
     mvwprintw(win, 4, 1, (std::string("Nb of requests : ")+std::to_string(nbRequests)).c_str());
+    mvwprintw(win, 6, 1, "Mean nb of requests : ");
+    mvwprintw(win, 7, 1, meanRequestsPrint.c_str());
+
     wrefresh(win);
 }
 
@@ -257,5 +284,75 @@ void Dashboard::displayStatistics(WINDOW * win, int &offset){
         }
     }
     wrefresh(win);
+}
+
+void Dashboard::fetchAlert(){
+    std::shared_ptr<Backend> backend = mBackendPtr.lock();
+    std::string alert = backend->evaluateAlertState();
+    if (alert != "") {
+        mAlertConsole.push_back(alert);
+    }
+}
+
+void Dashboard::displayAlerts(WINDOW * win){
+    unsigned int count = 0;
+    for (auto itr(mAlertConsole.rbegin()); itr != mAlertConsole.rend(); itr++){
+        if (count >= mRows-mHSep-2) break;
+        deleteLine(win, mVSep, count+1);
+        mvwprintw(win, count+1, 1, itr->c_str());
+        count++;
+    }
+    wrefresh(win);
+}
+
+void Dashboard::launchUi(){
+
+    signal(SIGINT, intHandler);
+
+    WINDOW *stats;
+    WINDOW *informations;
+    WINDOW *alerts;
+    WINDOW *footer;
+
+    initscr();
+
+    // Position of the separation between the windows
+    mVSep = int(mCols*3/4);
+    mHSep = int(mRows*2/3);
+
+    cbreak();
+    refresh();
+    noecho();
+
+
+    stats = createWindow(mHSep-1, mVSep, 0, 0, "Statistics");
+    informations = createWindow(mRows-1, mCols-mVSep, 0, mVSep, "Informations");
+    alerts = createWindow(mRows-mHSep, mVSep, mHSep-1, 0, "Alerts");
+    footer = createWindow(1, mCols, mRows-1, 0, "", false);
+    /* mvwprintw(footer, 0, 5, "TAB: Switch to requests / r: refresh / q:quit / j,k scroll / h,l backward, forward"); */
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    wrefresh(footer);
+
+    while (KeepRunning){
+        if (mBackendPtr.lock()->refresh){
+            fetchAlert();
+            int offset = 0;
+            mBackendPtr.lock()->refresh = false;
+            displayStatistics(stats, offset);
+            displayAlerts(alerts);
+            displayInformation(informations);
+        } else  {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            mBackendPtr.lock()->slideTimeWindow(true);
+            fetchAlert();
+        }
+    }
+
+
+    delwin(stats);
+    delwin(informations);
+    delwin(alerts);
+    delwin(footer);
+    endwin();
 }
 

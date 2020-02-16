@@ -12,6 +12,7 @@ void Backend::insertRequest(request req){
     if (mRequests.empty()){
         mRequests[req.timestamp].push_back(req);
         mCurrentBuffer = buffer(mRequests.begin(), mRequests.begin());
+        mLastTimestampAlert = mRequests.begin();
     } else {
         // Increase buffer size if a key is added and the timestamp is within the time window interval
         if ((req.timestamp > getStartTime())
@@ -26,6 +27,15 @@ void Backend::insertRequest(request req){
         if (section != "") increaseCountInMap(section);
         else std::cout << "Error, no section found !" << section << std::endl;
     }
+    if (req.timestamp <= mCurrentBuffer.first->first + mTimeWindow
+            && req.timestamp + mAlertMeanPeriod >= mCurrentBuffer.first->first+mTimeWindow){
+        mNbRequestInPeriod++;
+    }
+    // To restrict the amout of request in the memory
+    if (req.timestamp > getStartTime()+mTimeWindow+mMaxTimestampBuffering){
+        pauseParsing = true;
+    }
+    refresh = true;
 }
 
 Backend::buffer Backend::getRequestBuffer(){
@@ -45,8 +55,18 @@ long unsigned int Backend::getStartTime(){
         return 0;
 }
 
+long unsigned int Backend::getEndTime(){
+    if (!mRequests.empty())
+        return mCurrentBuffer.second->first;
+    else
+        return -1;
+}
+
 unsigned int Backend::getBufferSize(){
     std::lock_guard<std::mutex> lock(mRequestsMutex);
+    if (mRequests.empty()){
+        return 0;
+    }
     unsigned int res = 0;
 
     // Include the end iterator
@@ -61,14 +81,17 @@ unsigned int Backend::getBufferSize(){
 
 void Backend::slideTimeWindow(bool forward){
     std::lock_guard<std::mutex> lock(mRequestsMutex);
+    if (mRequests.empty()) return;
     if (forward) {
         requestList requestToRemove = mCurrentBuffer.first->second;
         mCurrentBuffer.first++;
         mCurrentBuffer.second++;
+        refresh = true;
         // If out of bound, undo
         if (mCurrentBuffer.second == mRequests.end()) {
             mCurrentBuffer.first--;
             mCurrentBuffer.second--;
+            refresh = false;
         }
         else {
             // Removing from calculations
@@ -81,6 +104,7 @@ void Backend::slideTimeWindow(bool forward){
                 while (mCurrentBuffer.second != mRequests.end() and isInWindow){
                     // Adding requests to calculations
                     requestList requestToAdd = mCurrentBuffer.second->second;
+                    mNbRequestInPeriod += requestToAdd.size();
                     for (auto itr(requestToAdd.begin()); itr != requestToAdd.end(); itr++) {
                         increaseCountInMap(itr->getSection());
                     }
@@ -91,6 +115,8 @@ void Backend::slideTimeWindow(bool forward){
                 mCurrentBuffer.second--;
             }
         }
+        // Unblock the parsers
+        pauseParsing = false;
     } else {
         if (mCurrentBuffer.first != mRequests.begin()) {
             mCurrentBuffer.first--;
@@ -103,6 +129,7 @@ void Backend::slideTimeWindow(bool forward){
             // Removing from calculations
             while (!isInWindow and mCurrentBuffer.first != mCurrentBuffer.second){
                 requestList requestToRemove = mCurrentBuffer.second->second;
+                mNbRequestInPeriod -= requestToRemove.size();
                 for (auto itr(requestToRemove.begin()); itr != requestToRemove.end(); itr++) {
                     decreaseCountInMap(itr->getSection());
                 }
@@ -112,6 +139,7 @@ void Backend::slideTimeWindow(bool forward){
             }
         }
     }
+    updateRequestCountAlert();
 }
 
 
@@ -186,4 +214,42 @@ std::vector<std::pair<unsigned int, std::string>> Backend::getMostHits(unsigned 
         count++;
     }
     return res;
+}
+
+std::string Backend::evaluateAlertState(){
+    if (mAlertState) {
+        if (mNbRequestInPeriod < mAlertThreshold*mAlertMeanPeriod){
+            mAlertState = false;
+            return("Alert Recovered at " + std::to_string(getStartTime() + mTimeWindow));
+        }
+        else return("");
+    } else {
+        if (mNbRequestInPeriod >= mAlertThreshold*mAlertMeanPeriod){
+            mAlertState = true;
+            return("High traffic generated an alert - hits = " + std::to_string(mCurrentBuffer.second->second.size())+ ", triggered at " + std::to_string(getStartTime() + mTimeWindow));
+        }
+        else return("");
+    }
+}
+
+double Backend::getMeanRequets(){
+    return ((double)mNbRequestInPeriod/(double)mAlertMeanPeriod);
+}
+
+
+void Backend::updateRequestCountAlert(){
+    if (mCurrentBuffer.first->first+mTimeWindow > (mAlertMeanPeriod + mLastTimestampAlert->first)){
+        while (mCurrentBuffer.first->first + mTimeWindow > mAlertMeanPeriod + mLastTimestampAlert->first){
+            mNbRequestInPeriod -= mLastTimestampAlert->second.size();
+            auto tmp = mLastTimestampAlert;
+            mLastTimestampAlert++;
+            mRequests.erase(tmp);
+        }
+    } else {
+        while (mLastTimestampAlert != mRequests.begin()
+                && (mCurrentBuffer.first->first + mTimeWindow < mAlertMeanPeriod + mLastTimestampAlert->first)){
+            mLastTimestampAlert--;
+            mNbRequestInPeriod += mLastTimestampAlert->second.size();
+        }
+    }
 }

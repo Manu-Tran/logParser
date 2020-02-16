@@ -37,7 +37,7 @@ typedef struct request_t{
         if (std::regex_search(path, match, re) && match.size() > 0) {
             section = match.str(1);
         } else {
-            std::cout << "Error parsing regex !" << path << std::endl;
+            /* std::cout << "Error parsing regex !" << path << std::endl; */
             return "";
         }
         return section;

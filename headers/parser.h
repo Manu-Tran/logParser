@@ -37,6 +37,7 @@ class Parser {
         std::string readLogLine();
 
         bool appIsRunning();
+        bool parsingPaused();
 
         /**
          * @brief Get new request and add it to the mRequestList

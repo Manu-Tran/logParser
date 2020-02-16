@@ -17,6 +17,7 @@ class Application {
         std::shared_ptr<Backend> mBackendPtr;
         Dashboard mDashboard;
         std::vector<Parser> mParserList;
+        bool mIsInteractive;
 
     public:
         Application(std::string filename = "", unsigned int timewindow = 10, unsigned int alertThreshold = 10, bool isInteractive = true);

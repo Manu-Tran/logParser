@@ -7,6 +7,7 @@ Parser::Parser(std::weak_ptr<Backend> backend, std::string name)
     }
     else if (!std::filesystem::exists(name)) {
         std::cout << "Unable to load file, switching to stdin !" << std::endl;
+        std::cout << "Readind from file stdin with columns : " << readLogLine();
         mReadFromStdin = true;
     }
     else {
@@ -83,9 +84,10 @@ void Parser::getNextRequest(){
             method = match.str(1);
             path = match.str(2);
         } else {
-            std::cout << "Error parsing regex ! " << std::endl;
+            /* std::cout << "Error parsing regex ! " << std::endl; */
             return;
         }
+        if (path == "") return;
 
         mBackendPtr.lock()->insertRequest(
                 request(
@@ -102,14 +104,18 @@ void Parser::getNextRequest(){
 }
 
 void Parser::run(){
-    int count = 0;
     while (true and appIsRunning()){
-        getNextRequest();
-        /* sleep(1); */
-        count++;
+        if (parsingPaused())
+            sleep(1);
+        else
+            getNextRequest();
     }
 }
 
 bool Parser::appIsRunning(){
     return mBackendPtr.lock()->isRunning;
+}
+
+bool Parser::parsingPaused(){
+    return mBackendPtr.lock()->pauseParsing;
 }
