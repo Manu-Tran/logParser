@@ -118,29 +118,7 @@ void Dashboard::launchInteractiveUi(){
                 }
                 fetchAlert();
                 break;
-            /* case 410: */
-            /*     delwin(requests); */
-            /*     delwin(stats); */
-            /*     delwin(informations); */
-            /*     delwin(alerts); */
-            /*     delwin(footer); */
-            /*     sleep(1); */
-            /*     getmaxyx(stdscr,mRows,mCols);		/1* get the number of rows and columns *1/ */
-            /*     mVSep = int(mCols*3/4); */
-            /*     mHSep = int(mRows*2/3); */
-            /*     mvprintw(24, 0, "Size now %i %i", mRows, mCols); */
-            /*     informations = createWindow(mRows-1, mCols-mVSep-1, 0, mVSep+1, "Informations"); */
-            /*     footer = createWindow(1, mCols, mRows-1, 0, "", false); */
-            /*     if (showRequests) { */
-            /*         requests = createWindow(mRows-1, mVSep-1, 0, 0, "Requests"); */
-            /*     } */
-            /*     else { */
-            /*         stats = createWindow(mHSep-1, mVSep, 0, 0, "Statistics"); */
-            /*         alerts = createWindow(mRows-mHSep-1, mVSep, mHSep, 0, "Alerts"); */
-            /*     } */
-            /*     break; */
             default:
-                /* mvprintw(24, 0, "Charcter pressed is = %3d Hopefully it can be printed as '%c'", ch, ch); */
                 refresh();
                 break;
         }
@@ -170,7 +148,6 @@ WINDOW * Dashboard::createWindow(int rows, int cols, int offsetRows, int offsetC
     WINDOW * win = newwin(rows, cols, offsetRows, offsetCols);
     if (hasBox) box(win, 0 , 0);
     mvwprintw(win, 0, 1, title.c_str());
-    /* mvwprintw(win, 10, 1, title.c_str()); */
     wrefresh(win);
     return win;
 }
@@ -329,7 +306,6 @@ void Dashboard::launchUi(){
     informations = createWindow(mRows-1, mCols-mVSep, 0, mVSep, "Informations");
     alerts = createWindow(mRows-mHSep, mVSep, mHSep-1, 0, "Alerts");
     footer = createWindow(1, mCols, mRows-1, 0, "", false);
-    /* mvwprintw(footer, 0, 5, "TAB: Switch to requests / r: refresh / q:quit / j,k scroll / h,l backward, forward"); */
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     wrefresh(footer);
 

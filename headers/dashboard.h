@@ -48,11 +48,6 @@ class Dashboard {
         int mHSep;
 
         /**
-         * @brief history of the alert console
-         */
-        std::vector<std::string> mAlertConsole;
-
-        /**
          * @brief trigger to switch between layouts
          */
         bool showRequests = false;
@@ -132,6 +127,11 @@ class Dashboard {
          * @param backend pointer to the backend
          */
         Dashboard(std::weak_ptr<Backend> backend);
+
+        /**
+         * @brief history of the alert console
+         */
+        std::vector<std::string> mAlertConsole;
 
         /**
          * @brief launch the interactive front end

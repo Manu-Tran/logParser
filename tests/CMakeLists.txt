@@ -14,7 +14,15 @@ file(
     ${CMAKE_SOURCE_DIR}/headers/*.h
     )
 
-add_executable (runTests test.cpp)
+file(
+  GLOB
+  sources
+  ${CMAKE_SOURCE_DIR}/sources/*.cpp
+  )
+list(REMOVE_ITEM sources ${CMAKE_SOURCE_DIR}/sources/main.cpp)
+
+
+add_executable (runTests test.cpp ${sources})
 
 target_include_directories(runTests PUBLIC ${CMAKE_SOURCE_DIR}/headers)
 

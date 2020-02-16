@@ -71,10 +71,10 @@ It is possible to install the requirement in debian-based distro with :
 
   **Libs installation**
   ```
-  apt-get install cmake
-  apt-get install ncurses
-  apt-get install doxygen   # to generate doc
-  apt-get install libgtest-dev
+  apt install cmake
+  apt install libncurses-dev
+  apt install doxygen   # to generate doc
+  apt install libgtest-dev
   ```
   **Google Test installation**
   ```
@@ -113,6 +113,8 @@ And then :
 - press j,k for scrolling
 - press h,l for increasing or decreasing the timestamp
 - press q to quit
+
+In interactive mode, it is allow to fully explore the buffer by "going back in time". But it will not parse the stream again, so you can't go back further than 120s.
 
 For further help, please use the ```-h``` option.
 
