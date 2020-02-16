@@ -31,7 +31,7 @@ add_compile_options(
   -Wall
   -Wextra
   -Wpedantic
-  -Werror
+  # -Werror
   )
 
 file (
@@ -43,7 +43,8 @@ file (
 file (
   GLOB
   headers
-  headers/*.hpp
+  headers/*.h
+  headers/*.hxx
   )
 
 add_executable(logParser ${sources})
@@ -51,13 +52,25 @@ add_executable(logParser ${sources})
 target_compile_features(logParser
   PRIVATE cxx_variadic_templates)
 
-target_include_directories(logParser PRIVATE ${headers})
-target_link_libraries(logParser ncurses)
+target_include_directories(logParser PRIVATE headers)
+target_link_libraries(logParser
+  ncurses
+  pthread)
 
-install(PROGRAMS logParser
-  DESTINATION ${CMAKE_SOURCE_DIR})
+enable_testing ()
+add_subdirectory(tests)
+# add_test (NAME Test
+    # COMMAND tests)
+
+# install(PROGRAMS logParser
+#   DESTINATION ${CMAKE_SOURCE_DIR})
 
 #======================================================================
 # Unit testing
 
+# enable_testing()
+# add_subdirectory(lib/googletest)
+# include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+# include_directories(${gmock_SOURCE_DIR}/include ${gmock_SOURCE_DIR})
 
+# add_subdirectory(tests)

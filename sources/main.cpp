@@ -21,7 +21,8 @@ int main(int argc, char* argv[])
     args::ValueFlag<int> timewindow(parser, "timeWindow", "The size of the window for stats", {'t'});
     args::ValueFlag<int> alertThreshold(parser, "alert-threshold", "The mean requests per second needed to trigger an alert", {'a'});
     /* args::ValueFlagList<std::string> characters(parser, "characters", "The character flag", {'c'}); */
-    args::ValueFlag<std::string> filename(parser, "filename", "The name of the parsed file", {'f'});
+    args::ValueFlagList<std::string> filename(parser, "filename", "The name of the parsed file", {'f'});
+    /* args::ValueFlag<std::string> filename(parser, "filename", "The name of the parsed file", {'f'}); */
     /* args::PositionalList<double> numbers(parser, "numbers", "The numbers position list"); */
     try
     {
@@ -48,7 +49,7 @@ int main(int argc, char* argv[])
     /* if (characters) { for (const auto ch: args::get(characters)) { std::cout << "c: " << ch << std::endl; } } */
     /* if (filename) { std::cout << "f: " << args::get(filename) << std::endl; } */
     /* if (numbers) { for (const auto nm: args::get(numbers)) { std::cout << "n: " << nm << std::endl; } } */
-    std::string file_arg = "";
+    std::vector<std::string> file_arg;
     int timewindow_arg = 10;
     int alertThreshold_arg = 10;
     if (filename) { file_arg = args::get(filename); }

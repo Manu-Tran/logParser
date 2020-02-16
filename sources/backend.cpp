@@ -22,15 +22,18 @@ void Backend::insertRequest(request req){
             mCurrentBuffer.second++;
         } else mRequests[req.timestamp].push_back(req);
     }
+
     if (req.timestamp >= getStartTime() && ((req.timestamp - getStartTime()) <= mTimeWindow)){
         std::string section = req.getSection();
         if (section != "") increaseCountInMap(section);
         else std::cout << "Error, no section found !" << section << std::endl;
     }
+
     if (req.timestamp <= mCurrentBuffer.first->first + mTimeWindow
             && req.timestamp + mAlertMeanPeriod >= mCurrentBuffer.first->first+mTimeWindow){
         mNbRequestInPeriod++;
     }
+
     // To restrict the amout of request in the memory
     if (req.timestamp > getStartTime()+mTimeWindow+mMaxTimestampBuffering){
         pauseParsing = true;
@@ -81,24 +84,27 @@ unsigned int Backend::getBufferSize(){
 
 void Backend::slideTimeWindow(bool forward){
     std::lock_guard<std::mutex> lock(mRequestsMutex);
+
     if (mRequests.empty()) return;
+
     if (forward) {
         requestList requestToRemove = mCurrentBuffer.first->second;
         mCurrentBuffer.first++;
         mCurrentBuffer.second++;
         refresh = true;
+
         // If out of bound, undo
         if (mCurrentBuffer.second == mRequests.end()) {
             mCurrentBuffer.first--;
             mCurrentBuffer.second--;
             refresh = false;
-        }
-        else {
+        } else {
             // Removing from calculations
             for (auto itr(requestToRemove.begin()); itr != requestToRemove.end(); itr++) {
                 decreaseCountInMap(itr->getSection());
             }
             bool isInWindow = (mCurrentBuffer.second->first <= mCurrentBuffer.first->first + mTimeWindow);
+
             if (!isInWindow) mCurrentBuffer.second--;
             else {
                 while (mCurrentBuffer.second != mRequests.end() and isInWindow){

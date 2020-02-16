@@ -21,12 +21,29 @@
  */
 class Parser {
     private:
+
+        /**
+         * @brief Pointer to the backend
+         */
         std::weak_ptr<Backend> mBackendPtr;
+
+        /**
+         * @brief input stream
+         */
         std::ifstream mInputStream;
+
+        /**
+         * @brief boolean indicating whether the input in read from stdin
+         */
         bool mReadFromStdin = false;
 
     public:
-        /* Parser(std::weak_ptr<Backend> backend); */
+        /**
+         * @brief Basic constructor
+         *
+         * @param backend pointer to the backend
+         * @param filename name of the file to open (stdin if empty)
+         */
         Parser(std::weak_ptr<Backend> backend, std::string filename = "");
 
         /**
@@ -36,7 +53,18 @@ class Parser {
          */
         std::string readLogLine();
 
+        /**
+         * @brief Get the state of the application
+         *
+         * @return true if the application is still running, false otherwise
+         */
         bool appIsRunning();
+
+        /**
+         * @brief Get the a boolean indicating whether the parsing should be paused
+         *
+         * @return true if the parser needs to be paused, false otherwise
+         */
         bool parsingPaused();
 
         /**
@@ -44,6 +72,9 @@ class Parser {
          */
         void getNextRequest();
 
+        /**
+         * @brief Run the parser
+         */
         void run();
 };
 

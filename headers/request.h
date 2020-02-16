@@ -7,6 +7,9 @@
 #include <regex>
 #include <iostream>
 
+/**
+ * @brief Structure for storing the requests
+ */
 typedef struct request_t{
     const std::string host;
     const std::string path;
@@ -16,6 +19,23 @@ typedef struct request_t{
     const int statusCode;
     const int size;
 
+    /**
+     * @brief Basic constructor
+     *
+     * @param inputHost
+     * @param inputPath
+     * @param inputMethod
+     * @param inputAuthuser
+     * @param inputTimestamp
+     * @param inputStatusCode
+     * @param
+     * @param inputPath
+     * @param inputMethod
+     * @param inputAuthuser
+     * @param inputTimestamp
+     * @param inputStatusCode
+     * @param inputSize
+     */
     request_t(std::string inputHost, std::string inputPath, std::string inputMethod, std::string inputAuthuser, int inputTimestamp, int inputStatusCode, int inputSize)
         : host(inputHost)
           , path(inputPath)
@@ -26,10 +46,20 @@ typedef struct request_t{
           , size(inputSize)
     {}
 
+    /*
+     * @brief Convertion to string
+     *
+     * @return stirng equivalent to the request
+     */
     std::string toString(){
         return host + " " + authuser + " " +  method + " " + path +" " + std::to_string(timestamp);
     }
 
+    /**
+     * @brief Extracting section from the path
+     *
+     * @return section
+     */
     std::string getSection(){
         std::regex re("(/[^/]*).*");
         std::smatch match;
@@ -45,9 +75,6 @@ typedef struct request_t{
 
 } request;
 
-
-
-/* using requestPtr = std::shared_ptr<request>; */
 using requestList = std::list<request>;
 using requestListPtr = std::shared_ptr<requestList>;
 

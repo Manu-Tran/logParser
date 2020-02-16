@@ -1,11 +1,14 @@
 #include "application.h"
 
-Application::Application(std::string filename, unsigned int timewindow, unsigned int alertThreshold, bool isInteractive)
+Application::Application(std::vector<std::string> filenames, unsigned int timewindow, unsigned int alertThreshold, bool isInteractive)
   : mBackendPtr(std::make_shared<Backend>(timewindow, alertThreshold))
   , mDashboard(mBackendPtr)
 {
     mIsInteractive = isInteractive;
-    mParserList.push_back(Parser(mBackendPtr, filename));
+    if (filenames.empty() || !isInteractive) mParserList.push_back(Parser(mBackendPtr, ""));
+    for (auto itr(filenames.begin()); itr != filenames.end(); itr++ ){
+        mParserList.push_back(Parser(mBackendPtr, *itr));
+    }
 }
 
 void Application::run(){

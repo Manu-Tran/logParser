@@ -140,7 +140,7 @@ void Dashboard::launchInteractiveUi(){
             /*     } */
             /*     break; */
             default:
-                mvprintw(24, 0, "Charcter pressed is = %3d Hopefully it can be printed as '%c'", ch, ch);
+                /* mvprintw(24, 0, "Charcter pressed is = %3d Hopefully it can be printed as '%c'", ch, ch); */
                 refresh();
                 break;
         }
