@@ -192,11 +192,11 @@ For further help, please use the ```-h``` option.
   ```
 
 # Possible Improvements
-  ** Adding other metrics ** : It would have been posssible to add more metrics such as gettng count of status code over last requests.
-  ** Enabling reverse parsing ** : Allowing the backend to ask the parsers for the first line again
-  ** More robust parsers ** : Being able to build more diverse parsers to parse other type of file than csv, or csv with differents columns.
-  ** Better mutex management ** : Here there is only one mutex protecting the relevant Backend functions. It has the advantage of avoiding deadlocks but can approach a limit in term of scalability if there are multi parsers.
-  ** Better responsivity ** : The frontend does not respond very well to terminal resizing. It would be interesting to detect that kind of changes and refresh.
+  - ** Adding other metrics ** : It would have been posssible to add more metrics such as gettng count of status code over last requests.
+  - ** Enabling reverse parsing ** : Allowing the backend to ask the parsers for the first line again
+  - ** More robust parsers ** : Being able to build more diverse parsers to parse other type of file than csv, or csv with differents columns.
+  - ** Better mutex management ** : Here there is only one mutex protecting the relevant Backend functions. It has the advantage of avoiding deadlocks but can approach a limit in term of scalability if there are multi parsers.
+  - ** Better responsivity ** : The frontend does not respond very well to terminal resizing. It would be interesting to detect that kind of changes and refresh.
 
 
 
