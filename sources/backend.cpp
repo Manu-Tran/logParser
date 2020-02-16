@@ -1,7 +1,8 @@
 #include "backend.h"
 
-Backend::Backend(unsigned int timewindow)
+Backend::Backend(unsigned int timewindow, unsigned int alertThreshold)
     : mTimeWindow(timewindow)
+    , mAlertThreshold(alertThreshold)
 {}
 
 void Backend::insertRequest(request req){

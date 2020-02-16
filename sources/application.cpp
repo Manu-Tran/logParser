@@ -1,7 +1,7 @@
 #include "application.h"
 
-Application::Application(std::string filename, unsigned int timewindow)
-  : mBackendPtr(std::make_shared<Backend>(timewindow))
+Application::Application(std::string filename, unsigned int timewindow, int alertThreshold, bool isInteractive)
+  : mBackendPtr(std::make_shared<Backend>(timewindow, alertThreshold))
   , mDashboard(mBackendPtr)
 {
   mParserList.push_back(Parser(mBackendPtr, filename));

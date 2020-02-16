@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
     args::ArgumentParser parser("This is a test program.", "This goes after the options.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<int> timewindow(parser, "timeWindow", "The size of the window for stats", {'t'});
+    args::ValueFlag<int> alertThreshold(parser, "alert-threshold", "The mean requests per second needed to trigger an alert", {'a'});
     /* args::ValueFlagList<std::string> characters(parser, "characters", "The character flag", {'c'}); */
     args::ValueFlag<std::string> filename(parser, "filename", "The name of the parsed file", {'f'});
     /* args::PositionalList<double> numbers(parser, "numbers", "The numbers position list"); */
@@ -45,14 +46,13 @@ int main(int argc, char* argv[])
     /* if (characters) { for (const auto ch: args::get(characters)) { std::cout << "c: " << ch << std::endl; } } */
     /* if (filename) { std::cout << "f: " << args::get(filename) << std::endl; } */
     /* if (numbers) { for (const auto nm: args::get(numbers)) { std::cout << "n: " << nm << std::endl; } } */
-    std::string file = "";
-    if (filename) { file = args::get(filename); }
-    if (timewindow) {
-        Application app(file, args::get(timewindow));
-        app.run();
-    } else {
-        Application app(file);
-        app.run();
-    }
+    std::string file_arg = "";
+    int timewindow_arg = 10;
+    int alertThreshold_arg = 10;
+    if (filename) { file_arg = args::get(filename); }
+    if (timewindow) { timewindow_arg = args::get(timewindow); }
+    if (alertThreshold) { alertThreshold_arg = args::get(alertThreshold); }
+    Application app(file_arg, timewindow_arg, alertThreshold_arg, isInteractive);
+    app.run();
     return(0);
 }

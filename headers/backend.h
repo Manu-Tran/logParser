@@ -20,6 +20,7 @@ class Backend {
     private:
         std::mutex mRequestsMutex;
         unsigned int mTimeWindow;
+        unsigned int mAlertThreshold;
         Backend::buffer mCurrentBuffer;
         std::map<long unsigned int, requestList> mRequests;
         std::multimap<unsigned int, std::string> mMostHits;
@@ -31,7 +32,7 @@ class Backend {
     public:
         std::atomic<bool> isRunning = true;
 
-        Backend(unsigned int timewindow = 10);
+        Backend(unsigned int timewindow = 10, unsigned int alertThreshold = 10);
         bool bufIsEmpty();
         void insertRequest(request req);
 
